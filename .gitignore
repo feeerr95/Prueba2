@@ -1,62 +1,98 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+import os
 
-# C extensions
-*.so
+from pila import Pila
+from cancion import Cancion
 
-# Distribution / packaging
-.Python
-env/
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+EXTENSIONES_ACEPTADAS = ("wav", "mp3", "flac", "ogg", "wma")
 
-# PyInstaller
-#  Usually these files are written by a python script from a template
-#  before PyInstaller builds the exe, so as to inject date/other infos into it.
-*.manifest
-*.spec
+class ColaDeReproduccion:
+	"""Clase que representa la cola de reproduccion del reproductor. Permite agregar y remover 
+	canciones, ademas de poder hacer y deshacer estas acciones. Las canciones se guardan en la 
+	cola como objetos de clase Cancion."""
+	
+	def __init__(self, lista_canciones = []):
+		""" Recibe una lista de objetos de clase Cancion con las canciones que se quieren 
+		reproducir."""
+		self.lista_canciones = lista_canciones
+		self.actual = None
+		self.siguiente = None
+		self.anterior = None
+		self.cancion = Cancion()
+		self.indice = 0
+		self.cant_canciones = len(lista_canciones)-1
+		self.acciones = Pila()
+		self.desacciones = Pila()
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+	def cancion_actual(self):
+		""" Devuelve un objeto de clase Cancion que corresponde a la cancion actual, o None si no 
+		hay canciones cargadas en la cola."""
+		if not self.lista_canciones:
+			return 
+		self.actual = self.cancion(self.lista_canciones[self.indice])
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*,cover
-.hypothesis/
+	def cancion_siguiente(self):
+		""" Devuelve un objeto de clase Cancion que corresponde a la cancion siguiente en la cola, 
+		o None si no hay mas canciones."""
+		if not self.lista_canciones or self.indice == self.cant_canciones:
+			return
+		self.indice += 1
+		self.siguiente = self.cancion(self.lista_canciones[self.indice])
 
-# Translations
-*.mo
-*.pot
 
-# Django stuff:
-*.log
+	def cancion_anterior(self):
+		""" Devuelve un objeto de clase Cancion que corresponde a la cancion anterior en la cola, 
+		o None si no hay canciones en la misma o si la actual es la primera de la cola."""
+		if not self.lista_canciones or self.indice == -1:
+			return
+		self.indice -= 1
+		self.anterior = self.cancion(self.lista_canciones[self.indice])
 
-# Sphinx documentation
-docs/_build/
+	def agregar_cancion(self, ruta_cancion):
+		""" Agrega una Cancion a la cola a partir de su ruta. Devuelve True si se agrego 
+		correctamente, False en caso contrario. Esta accion puede deshacerse y rehacerse."""
+		try:
+			self.lista_canciones.append(ruta_cancion)
+			self.acciones.apilar(('a', self.indice, ruta_cancion))
+			return True
+		except:
+			return False
 
-# PyBuilder
-target/
+	def remover_cancion(self, ruta_cancion):
+		""" Remueve una Cancion de la cola a partir de su ruta. Devuelve True si se removio 
+		correctamente, False en caso contrario. Esta accion puede deshacerse y rehacerse."""
+		try:
+			posicion = self.lista_canciones.index(ruta_cancion)
+			self.lista_canciones.remove(ruta_cancion)
+			self.acciones.apilar(('r', posicion, ruta_cancion))
+			return True
+		except:
+			return False
 
-#Ipython Notebook
-.ipynb_checkpoints
+	def deshacer_modificacion(self):
+		""" Deshace la ultima accion realizada. Devuelve True si pudo deshacerse, False en caso 
+		contrario."""
+		try:
+			self.desacciones.apilar(self.acciones.desapilar())
+			modo = desacciones.ver_tope()[0]
+			posicion = desacciones.ver_tope()[1]
+			ruta = desacciones.ver_tope()[2]
+			if modo == 'a'
+				self.lista_canciones.remove(ruta)
+			elif modo == 'r':
+				self.lista_canciones.insert(posicion,ruta)
+			return True
+		except:
+			return False
+
+		
+
+	def rehacer_modificacion(self):
+		""" Rehace la ultima accion que se deshizo. Devuelve True si pudo rehacerse, False en caso 
+		contrario."""
+		raise NotImplementedError()
+
+	def obtener_n_siguientes(self, n_canciones):
+		""" Devuelve una lista con las siguientes n canciones. Si en la cola de reproduccion 
+		quedan menos canciones que las pedidas, la lista contendra menos elementos que los 
+		pedidos."""
+		raise NotImplementedError()
